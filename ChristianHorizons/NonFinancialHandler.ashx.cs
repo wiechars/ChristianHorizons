@@ -86,27 +86,10 @@ namespace ChristianHorizons
         {
             string strOperation = forms.Get("oper");
             string strEmpId = string.Empty;
-
-            if (strOperation == "add")
-            {
-                //var result = collection.AsQueryable<EmployeeInline>().Select(c => c._id).Max();
-                //strEmpId = (Convert.ToInt32(result) + 1).ToString();
-                //strResponse = "Employee record successfully added";
-
-            }
-            else if (strOperation == "edit")
-            {
-                //strEmpId = forms.Get("Name").ToString();
                 strResponse = "Individual record successfully updated";
-            }
-            else
-            {
-                strResponse = "";
-            }
-
-
+   
             string name = forms.Get("Name").ToString();
-            string daysOfSupport = forms.Get("DaysOfSupport").ToString();
+            int daysOfSupport = Convert.ToInt32(forms.Get("DaysOfSupport").ToString());
             string levelOfSupport = forms.Get("LevelOfSupport").ToString();
             string onHoldDays = forms.Get("OnHoldDays").ToString();
             string ministryDetailCode = forms.Get("MinistryDetailCode").ToString();

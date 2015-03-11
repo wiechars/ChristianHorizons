@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace JQGridDemo {
+namespace ChristianHorizons {
     
     
     public partial class NonFinancial {

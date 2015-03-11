@@ -1,5 +1,5 @@
 ﻿<%@ Page Title="Home Page" Language="C#" MasterPageFile="~/Site.master" AutoEventWireup="true"
-    CodeBehind="Default.aspx.cs" Inherits="JQGridDemo._Default" %>
+    CodeBehind="Default.aspx.cs" Inherits="ChristianHorizons._Default" %>
 
 <asp:Content ID="HeaderContent" runat="server" ContentPlaceHolderID="HeadContent">
 </asp:Content>
@@ -12,8 +12,8 @@
     </table>
     <div id="activeIndividualsPager">
     </div>
-    <button id="sendAll" type="submit">Save</button>
-    <div style="height:50px;"></div>
+    <!--<button id="sendAll" type="submit">Save</button>-->
+    <div style="height: 50px;"></div>
     <table id="exitedIndividuals">
     </table>
     <div id="exitedIndividualsPager">
@@ -22,32 +22,45 @@
 
     <script type="text/javascript">
         var lastsel2
-        jQuery("#activeIndividuals").jqGrid({
+
+        var grid = $("#activeIndividuals");
+        grid.jqGrid({
             url: GetUrl("Yes"),
             datatype: "json",
             colNames: ['Individual', 'Days of Support', 'Level of Support', 'On Hold Days', 'Ministry Detail Code', 'Language Served', 'Comments'],
             colModel: [
-                        { name: 'Name', index: 'Name', width: 100, stype: 'text', sortable: true, editable: true },
+                        { name: 'Name', index: 'NameVisible', width: 100, stype: 'text', sortable: true, editable: true, editoptions: { disabled: true } },
                         { name: 'DaysOfSupport', index: 'DaysOfSupport', width: 100, stype: 'text', sortable: true, editable: true },
                         {
                             name: 'LevelOfSupport', index: 'LevelOfSupport', width: 100, editable: true,
                             edittype: "select", editoptions: { value: "0-8 Hrs/Day:0-8 Hrs/Day;8-24 Hrs/Day:8-24 Hrs/Day;Once/Week:Once/Week;Once/Month:Once/Month" },
                             cellattr: function () { return ' title="This field is only required for the following Ministry Detail Codes: 9112, 9131, 8871."'; }
-
                         },
                         {
                             name: 'OnHoldDays', index: 'OnHoldDays', width: 100, editable: true,
                             cellattr: function () { return ' title="This field is only required for the following Ministry Detail Codes: 8847"'; }
 
                         },
-                        { name: 'MinistryDetailCode', index: 'MinistryDetailCode', width: 250, editable: true, edittype: "select", editoptions: { value: "FE:FedEx;IN:InTime;TN:TNT;AR:ARAMEX" } },
-                        {
-                            name: 'Language', index: 'Language', width: 100, align: "right", editable: true,
-                            edittype: "select", editoptions: { value: "English:English;French:French" },
-                            cellattr: function () { return ' title="This field is specified in Individuals Information. Please navigate to the individual’s page should an update be necessary."'; }
-                        },
+                        { name: 'MinistryDetailCode', index: 'MinistryDetailCode', width: 250, editable: true, edittype: "select", editoptions: { value: "9112:9112;9131:9131;8871:8871;" } },
+                         {
+                             name: 'Language', index: 'LanguageVisible', width: 100, align: "right", editable: true, editoptions: { disabled: true },
+                             // edittype: "select", editoptions: { value: "English:English;French:French" },
+                             cellattr: function () { return ' title="This field is specified in Individuals Information. Please navigate to the individual’s page should an update be necessary."'; }
+                         },
                         { name: 'Comments', index: 'Comments', width: 100, sortable: false, editable: true }
             ],
+            loadComplete: function () {
+                var ids = grid.jqGrid('getDataIDs');
+                //for (var i = 0; i < ids.length; i++) {
+                $.each(ids, function (i, row) {
+                    var id = ids[i];
+                    if (grid.jqGrid('getCell', id, 'MinistryDetailCode') === '9112') {
+                       //grid.jqGrid('setCell', id, 'LevelOfSupport', '', 'not-editable-cell');
+
+
+                    }
+                });
+            },
 
             ///*************** check out cellsubmit property for edits **************/
             rowNum: 10,
@@ -134,6 +147,8 @@
                 changeYear: true,
                 showButtonPanel: true,
                 dateFormat: 'MM yy',
+                monthNames: ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 onClose: function (dateText, inst) {
                     var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
                     var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
@@ -332,27 +347,27 @@
 
         var grid = $("#activeIndividuals"),
         decodeErrorMessage = function (jqXHR, textStatus, errorThrown) {
-        var html, errorInfo, i, errorText = textStatus + '\n<br />' + errorThrown;
-        if (jqXHR.responseText.charAt(0) === '[') {
-            try {
-                errorInfo = $.parseJSON(jqXHR.responseText);
-                errorText = "";
-                for (i = 0; i < errorInfo.length; i++) {
-                    if (errorText.length !== 0) {
-                        errorText += "<hr/>";
+            var html, errorInfo, i, errorText = textStatus + '\n<br />' + errorThrown;
+            if (jqXHR.responseText.charAt(0) === '[') {
+                try {
+                    errorInfo = $.parseJSON(jqXHR.responseText);
+                    errorText = "";
+                    for (i = 0; i < errorInfo.length; i++) {
+                        if (errorText.length !== 0) {
+                            errorText += "<hr/>";
+                        }
+                        errorText += errorInfo[i].Source + ": " + errorInfo[i].Message;
                     }
-                    errorText += errorInfo[i].Source + ": " + errorInfo[i].Message;
+                }
+                catch (e) { }
+            } else {
+                html = /<body.*?>([\s\S]*)<\/body>/i.exec(jqXHR.responseText);
+                if (html !== null && html.length > 1) {
+                    errorText = html[1];
                 }
             }
-            catch (e) { }
-        } else {
-            html = /<body.*?>([\s\S]*)<\/body>/i.exec(jqXHR.responseText);
-            if (html !== null && html.length > 1) {
-                errorText = html[1];
-            }
-        }
-        return errorText;
-    },
+            return errorText;
+        },
     sendData = function (data) {
         var dataToSend = JSON.stringify(data);
         alert("The following data are sending to the server:\n" + dataToSend);

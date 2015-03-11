@@ -1,1 +1,1 @@
-﻿<%@ Application Codebehind="Global.asax.cs" Inherits="JQGridDemo.Global" Language="C#" %>
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="ChristianHorizons.Global" Language="C#" %>

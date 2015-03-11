@@ -8,7 +8,7 @@ namespace ChristianHorizons
     public class Individual
     {
         private String name;
-        private String daysOfSupport;
+        private int daysOfSupport;
         private String levelOfSupport;
         private String onHoldDays;
         private String ministryDetailCode;
@@ -25,7 +25,7 @@ namespace ChristianHorizons
             set { name = value; }
         }
 
-        public string DaysOfSupport
+        public int DaysOfSupport
         {
             get { return daysOfSupport; }
             set { daysOfSupport = value; }

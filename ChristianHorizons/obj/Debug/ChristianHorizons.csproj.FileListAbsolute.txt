@@ -1,0 +1,5 @@
+C:\Projects\ChristianHorizons\ChristianHorizons\ChristianHorizons\obj\Debug\ChristianHorizons.csprojResolveAssemblyReference.cache
+C:\Projects\ChristianHorizons\ChristianHorizons\ChristianHorizons\bin\ChristianHorizons.dll
+C:\Projects\ChristianHorizons\ChristianHorizons\ChristianHorizons\bin\ChristianHorizons.pdb
+C:\Projects\ChristianHorizons\ChristianHorizons\ChristianHorizons\obj\Debug\ChristianHorizons.dll
+C:\Projects\ChristianHorizons\ChristianHorizons\ChristianHorizons\obj\Debug\ChristianHorizons.pdb
