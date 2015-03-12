@@ -87,9 +87,10 @@ namespace ChristianHorizons
             string strOperation = forms.Get("oper");
             string strEmpId = string.Empty;
                 strResponse = "Individual record successfully updated";
-   
+           int id = Convert.ToInt32(forms.Get("IndividID").ToString());
+           int nonFinancialID = Convert.ToInt32(forms.Get("NonFinancialID").ToString());
             string name = forms.Get("Name").ToString();
-            int daysOfSupport = Convert.ToInt32(forms.Get("DaysOfSupport").ToString());
+            string daysOfSupport = forms.Get("DaysOfSupport").ToString();
             string levelOfSupport = forms.Get("LevelOfSupport").ToString();
             string onHoldDays = forms.Get("OnHoldDays").ToString();
             string ministryDetailCode = forms.Get("MinistryDetailCode").ToString();
@@ -97,6 +98,8 @@ namespace ChristianHorizons
             string comments = forms.Get("Comments").ToString();
 
             Individual obj = new Individual();
+            obj.IndividID = id;
+            obj.NonFinancialID = nonFinancialID;
             obj.Name = name;
             obj.DaysOfSupport = daysOfSupport;
             obj.LevelOfSupport = levelOfSupport;

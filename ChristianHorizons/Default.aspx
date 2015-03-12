@@ -27,9 +27,11 @@
         grid.jqGrid({
             url: GetUrl("Yes"),
             datatype: "json",
-            colNames: ['Individual', 'Days of Support', 'Level of Support', 'On Hold Days', 'Ministry Detail Code', 'Language Served', 'Comments'],
+            colNames: ['ID', 'NonFinancialID', 'Individual', 'Days of Support', 'Level of Support', 'On Hold Days', 'Ministry Detail Code', 'Language Served', 'Comments'],
             colModel: [
-                        { name: 'Name', index: 'NameVisible', width: 100, stype: 'text', sortable: true, editable: true, editoptions: { disabled: true } },
+                        { name: 'IndividID', index: 'IndividID', width: 30, stype: 'text', sortable: true, editable: true, editoptions: { disabled: true } },
+                        { name: 'NonFinancialID', index: 'NonFinancialID', width: 30, stype: 'text', sortable: true, editable: true, editoptions: { disabled: true } },
+                        { name: 'Name', index: 'NameVisible', width: 140, stype: 'text', sortable: true, editable: true, editoptions: { disabled: true } },
                         { name: 'DaysOfSupport', index: 'DaysOfSupport', width: 100, stype: 'text', sortable: true, editable: true },
                         {
                             name: 'LevelOfSupport', index: 'LevelOfSupport', width: 100, editable: true,
@@ -55,7 +57,7 @@
                 $.each(ids, function (i, row) {
                     var id = ids[i];
                     if (grid.jqGrid('getCell', id, 'MinistryDetailCode') === '9112') {
-                       //grid.jqGrid('setCell', id, 'LevelOfSupport', '', 'not-editable-cell');
+                        //grid.jqGrid('setCell', id, 'LevelOfSupport', '', 'not-editable-cell');
 
 
                     }

@@ -15,9 +15,45 @@ namespace ChristianHorizons
         /// <summary>
         /// Constants
         /// </summary>
-        protected string NON_FINANCIAL_LIST = "{BA7AB7CE-E28C-459B-A0C4-BCE88EB7E5B3}";
+        protected string NON_FINANCIAL_LIST = "NonFinancialData";
+        protected string NON_FINANCIAL_LIST_VIEW_NAME = "{BA7AB7CE-E28C-459B-A0C4-BCE88EB7E5B3}";
+        protected string SERVICE_HISTORY = "Service History";
         protected string INDIVID_FUNDING_DATA = "{CBB8C7AC-B33D-4517-BD10-5E573065618E}";
         protected string SHAREPOINT_URL = "https://odb.chconnect.org/_vti_bin/Lists.asmx";
+
+        /// <summary>
+        /// Access the specified Sharepoint List and takes an xml input string
+        /// then updates the list specified.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="listName"></param>
+        private void UpdateSharepointDataList(string query, string listName)
+        {
+            Web_Reference.Lists listService = new Web_Reference.Lists();
+
+            /*Authenticate the current user by passing their default 
+            credentials to the Web service from the system credential cache.*/
+            //listService.Credentials =
+            // System.Net.CredentialCache.DefaultCredentials;
+            //Use Above when live - for now - use below
+            listService.PreAuthenticate = true;
+            listService.Credentials = new System.Net.NetworkCredential("rwiecha", "cybw83Dr82", "CH");
+
+            string strBatch = query;
+
+            XmlDocument xmlDoc = new System.Xml.XmlDocument();
+
+            System.Xml.XmlElement elBatch = xmlDoc.CreateElement("Batch");
+
+            elBatch.SetAttribute("OnError", "Continue");
+            elBatch.SetAttribute("ListVersion", "1");
+            //elBatch.SetAttribute("ViewName",listView);
+            elBatch.InnerXml = strBatch;
+
+            XmlNode ndReturn = listService.UpdateListItems(listName, elBatch);
+
+
+        }
 
         /// <summary>
         /// Establishes a connection to the Sharpoint Webservice Lists and retrieves data
@@ -73,29 +109,7 @@ namespace ChristianHorizons
 
         }
 
-//        private void UpdateSharepointList()
-//        {
-//            Web_Reference.Lists listService = new Web_Reference.Lists();
-//listService.Credentials= System.Net.CredentialCache.DefaultCredentials;
 
-//string strBatch = "<Method ID='1' Cmd='Update'>" + 
-//    "<Field Name='ID'>4</Field>" +
-//    "<Field Name='Field_Number'>999</Field></Method>" +
-//    "<Method ID='2' Cmd='Update'><Field Name='ID' >6</Field></Method>"; 
-
-//XmlDocument xmlDoc = new System.Xml.XmlDocument();
-
-//System.Xml.XmlElement elBatch = xmlDoc.CreateElement("Batch");
-
-//elBatch.SetAttribute("OnError","Continue");
-//elBatch.SetAttribute("ListVersion","1");
-//elBatch.SetAttribute("ViewName",
-//    "0d7fcacd-1d7c-45bc-bcfc-6d7f7d2eeb40");
-
-//elBatch.InnerXml = strBatch;
-
-//XmlNode ndReturn = listService.UpdateListItems("List_Name", elBatch);
-//        }
 
         /// <summary>
         /// Gets Non Financial Data
@@ -112,6 +126,16 @@ namespace ChristianHorizons
 
             return GetSharepointDataList(NON_FINANCIAL_LIST, null, "150", queryInnerXML, null, null);
         }
+
+        private XmlNode GetProgramIndividuals(string month, string year)
+        {
+            string queryInnerXML = "<Where><EQ><FieldRef Name=\"RefInd2\" LookupId=\"TRUE\"/>" +
+                            "<Value Type=\"Lookup\">2626;</Value></EQ></Where>";
+
+
+            return GetSharepointDataList(SERVICE_HISTORY, null, "300", null, null, null);
+        }
+
 
         private SqlDataReader QueryFetch(String commandText)
         {
@@ -152,13 +176,18 @@ namespace ChristianHorizons
 
         public List<Individual> GetIndividuals(string month, string year, string exited)
         {
-            XmlNode results = GetNonFinancialList(month, year);
-            List<Individual> list = new List<Individual>();
-            int value;
 
-            if (results != null && results.HasChildNodes == true)
+            int result = 0;
+
+            XmlNode programIndividuals = GetProgramIndividuals(month, year);
+            XmlNode nonFinancialData = GetNonFinancialList(month, year);
+            List<Individual> nonFinancialList = new List<Individual>();
+
+            /* First populate the list with all the individuals in the program 
+                with null values for all the NonFinancial Data columns*/
+            if (programIndividuals != null && programIndividuals.HasChildNodes == true)
             {
-                foreach (XmlNode node in results)
+                foreach (XmlNode node in programIndividuals)
                 {
                     if (node.Name == "rs:data")
                     {
@@ -167,21 +196,54 @@ namespace ChristianHorizons
                             if (node.ChildNodes[i].NodeType.ToString() == "Element")
                             {
                                 Individual individ = new Individual();
-                                individ.Name = node.ChildNodes[i].Attributes["ows_Individuals"].Value.ToString().Split('#')[1];
-                                individ.DaysOfSupport = Int32.TryParse(node.ChildNodes[i].Attributes["ows_DaysOfSupport"].Value.ToString(), out value) ? value : 0;
-                                individ.LevelOfSupport = node.ChildNodes[i].Attributes["ows_LanguageServedAtServiceFromIndiv"].Value;
-                                //individ.OnHoldDays = node.ChildNodes[i].Attributes["ows_OnHoldDays"].Value;
-                                individ.MinistryDetailCode = node.ChildNodes[i].Attributes["ows_MinistryDetailCode"].Value.ToString().Split('#')[1];
-                                individ.Language = node.ChildNodes[i].Attributes["ows_LanguageServedAtServiceFromIndiv"].Value;
-                                //individ.Comments =  node.ChildNodes[i].Attributes["ows_Comments"].Value;
-                                list.Add(individ);
+                                individ.IndividID = Convert.ToInt32(node.ChildNodes[i].Attributes["ows_RefInd2"].Value.ToString().Split(';')[0]);
+                                individ.Name = node.ChildNodes[i].Attributes["ows_RefInd2"].Value.ToString().Split('#')[1];
+                                nonFinancialList.Add(individ);
 
                             }
                         }
                     }
                 }
             }
-            return list;
+
+            /* Now that we have a list of users, take the NonFinancial Data and update the list of individuals
+               to have their financial data if it exists.  **Note this is how I am recreating the equivalent of a 
+               MS SQL right join*/
+            if (nonFinancialData != null && nonFinancialData.HasChildNodes == true)
+            {
+                foreach (XmlNode node in nonFinancialData)
+                {
+                    if (node.Name == "rs:data")
+                    {
+                        for (int i = 0; i < node.ChildNodes.Count; i++)
+                        {
+                            if (node.ChildNodes[i].NodeType.ToString() == "Element")
+                            {
+                                foreach (Individual obj in nonFinancialList)
+                                {
+
+                                    //Check if there is a non financial record for the given month year for the individual
+                                    if (obj.IndividID == Convert.ToInt32(node.ChildNodes[i].Attributes["ows_Individuals"].Value.ToString().Split(';')[0]))
+                                    {
+
+                                        obj.NonFinancialID = int.TryParse(node.ChildNodes[i].Attributes["ows_ID"].Value.ToString(), out result) ? result : -1;
+                                        obj.DaysOfSupport = node.ChildNodes[i].Attributes["ows_DaysOfSupport"].Value.ToString();
+
+
+                                        //obj.LevelOfSupport = node.ChildNodes[i].Attributes["ows_LevelOfSupport"].Value;
+                                        // obj.OnHoldDays = node.ChildNodes[i].Attributes["ows_OnHoldDays"].Value;
+                                        //    obj.MinistryDetailCode = node.ChildNodes[i].Attributes["ows_MinistryDetailCode"].Value.ToString().Split('#')[1];
+                                        //    obj.Language = node.ChildNodes[i].Attributes["ows_LanguageServedAtServiceFromIndiv"].Value;
+                                        //obj.Comments = node.ChildNodes[i].Attributes["ows_Comments"].Value;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            return nonFinancialList;
         }
 
 
@@ -223,28 +285,61 @@ namespace ChristianHorizons
 
         public bool SaveIndividualRecord(Individual record)
         {
-            return (this.QueryUpdate("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE; " +
-                                "BEGIN TRANSACTION; " +
-                                "UPDATE NonFinancialData " +
-                                "SET DaysOfSupp = '" + record.DaysOfSupport + "' " +
-                                "	,LevelOfSupport = '" + record.LevelOfSupport + "' " +
-                                "	,OnHoldDays = '" + record.OnHoldDays + "' " +
-                                "	,LanguageServedAtServiceFromIndividInfo = '" + record.Language + "' " +
-                                "	,MinistryDetailCode = '" + record.MinistryDetailCode + "' " +
-                                "	,Comments = '" + record.Comments + "' " +
-                                "WHERE Individual = '" + record.Name + "' " +
-                                "	AND Month = '" + record.Month + "' " +
-                                "	AND Year = '" + record.Year + "'; " +
-                                "IF @@ROWCOUNT = 0 " +
-                                "BEGIN " +
-                                "	INSERT INTO NonFinancialData(Individual, Month, Year, DaysOfSupp, LevelOfSupport,OnHoldDays " +
-                                "		,LanguageServedAtServiceFromIndividInfo,MinistryDetailCode, Comments) " +
-                                "	VALUES ('" + record.Name + "', '" + record.Month + "', '" + record.Year + "', '" + record.DaysOfSupport + "', '" + record.LevelOfSupport + "','" + record.OnHoldDays + "'," +
-                                            "'" + record.Language + "','" + record.MinistryDetailCode + "','" + record.Comments + "') " +
-                                "END " +
-                                "COMMIT TRANSACTION; "));
+            string query = "";
 
+            //Update
+            if (record.NonFinancialID > 0)
+            {
 
+                query = "<Method ID='1' Cmd='Update'>" +
+                "<Field Name='ID'>" + record.NonFinancialID + "</Field>" +
+                "<Field Name='Month'>" + record.Month + "</Field>" +
+                "<Field Name='Year'>" + record.Year + "</Field>" +
+                "<Field Name='DaysOfSupport'>" + record.DaysOfSupport + "</Field>" +
+                "<Field Name='Comments'>" + record.Comments + "</Field></Method>";
+
+            }
+            //New Record
+            else
+            {
+
+                query = "<Method ID='1' Cmd='New'>" +
+                "<Field Name='Individuals'>1834</Field>" +
+                "<Field Name='Month'>"+record.Month+"</Field>" +
+                "<Field Name='Year'>"+record.Year+"</Field>" +
+                "<Field Name='DaysOfSupport'>"+record.DaysOfSupport+"</Field>" +
+                "<Field Name='Comments'>"+record.Comments+"</Field></Method>";
+            }
+
+            UpdateSharepointDataList(query, NON_FINANCIAL_LIST);
+
+            return true;
         }
     }
+
+
+    //        private void UpdateSharepointList()
+    //        {
+    //            Web_Reference.Lists listService = new Web_Reference.Lists();
+    //listService.Credentials= System.Net.CredentialCache.DefaultCredentials;
+
+    //string strBatch = "<Method ID='1' Cmd='Update'>" + 
+    //    "<Field Name='ID'>4</Field>" +
+    //    "<Field Name='Field_Number'>999</Field></Method>" +
+    //    "<Method ID='2' Cmd='Update'><Field Name='ID' >6</Field></Method>"; 
+
+    //XmlDocument xmlDoc = new System.Xml.XmlDocument();
+
+    //System.Xml.XmlElement elBatch = xmlDoc.CreateElement("Batch");
+
+    //elBatch.SetAttribute("OnError","Continue");
+    //elBatch.SetAttribute("ListVersion","1");
+    //elBatch.SetAttribute("ViewName",
+    //    "0d7fcacd-1d7c-45bc-bcfc-6d7f7d2eeb40");
+
+    //elBatch.InnerXml = strBatch;
+
+    //XmlNode ndReturn = listService.UpdateListItems("List_Name", elBatch);
+    //        }
 }
+

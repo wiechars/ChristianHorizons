@@ -7,8 +7,10 @@ namespace ChristianHorizons
 {
     public class Individual
     {
+        private int individID;
+        private int nonFinancialID;
         private String name;
-        private int daysOfSupport;
+        private String daysOfSupport;
         private String levelOfSupport;
         private String onHoldDays;
         private String ministryDetailCode;
@@ -19,13 +21,25 @@ namespace ChristianHorizons
         private String active;
 
 
+        public int IndividID
+        {
+            get { return individID; }
+            set { individID = value; }
+        }
+
+        public int NonFinancialID
+        {
+            get { return nonFinancialID; }
+            set { nonFinancialID = value; }
+        }
+
         public string Name
         {
             get { return name; }
             set { name = value; }
         }
 
-        public int DaysOfSupport
+        public string DaysOfSupport
         {
             get { return daysOfSupport; }
             set { daysOfSupport = value; }
