@@ -109,8 +109,6 @@ namespace ChristianHorizons
 
         }
 
-
-
         /// <summary>
         /// Gets Non Financial Data
         /// </summary>
@@ -127,6 +125,12 @@ namespace ChristianHorizons
             return GetSharepointDataList(NON_FINANCIAL_LIST, null, "150", queryInnerXML, null, null);
         }
 
+        /// <summary>
+        /// Query used to get individuals by program
+        /// </summary>
+        /// <param name="month"></param>
+        /// <param name="year"></param>
+        /// <returns></returns>
         private XmlNode GetProgramIndividuals(string month, string year)
         {
             string queryInnerXML = "<Where><EQ><FieldRef Name=\"RefInd2\" LookupId=\"TRUE\"/>" +
@@ -136,44 +140,13 @@ namespace ChristianHorizons
             return GetSharepointDataList(SERVICE_HISTORY, null, "300", null, null, null);
         }
 
-
-        private SqlDataReader QueryFetch(String commandText)
-        {
-            String connectionString = "Persist Security Info=False;Integrated Security=true;Initial Catalog=ChristianHorizons;server=(local)";
-            SqlConnection conn = new SqlConnection(connectionString);
-            SqlCommand cmd = new SqlCommand();
-
-            cmd.CommandText = commandText;
-            cmd.CommandType = CommandType.Text;
-            cmd.Connection = conn;
-
-            conn.Open();
-            return cmd.ExecuteReader();
-        }
-
-        private bool QueryUpdate(String commandText)
-        {
-            try
-            {
-                String connectionString = "Persist Security Info=False;Integrated Security=true;Initial Catalog=ChristianHorizons;server=(local)";
-                SqlConnection conn = new SqlConnection(connectionString);
-                SqlCommand cmd = new SqlCommand();
-
-                cmd.CommandText = commandText;
-                cmd.Connection = conn;
-
-                conn.Open();
-                cmd.ExecuteNonQuery();
-                conn.Close();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
-
+        /// <summary>
+        /// Populates a list if individual objects to be used for the NonFinancialDataList
+        /// </summary>
+        /// <param name="month"></param>
+        /// <param name="year"></param>
+        /// <param name="exited"></param>
+        /// <returns></returns>
         public List<Individual> GetIndividuals(string month, string year, string exited)
         {
 
@@ -246,43 +219,11 @@ namespace ChristianHorizons
             return nonFinancialList;
         }
 
-
-        //public List<Individual> GetIndividuals(string month, string year, string exited)
-        //{
-        //    GetNonFinancialList();
-        //    List<Individual> list = new List<Individual>();
-        //    SqlDataReader reader = this.QueryFetch("SELECT ISNULL(NonFinancialData.Individual,IndividFundingData.Individual)AS 'Individual' " +
-        //                                        ",ISNULL(NonFinancialData.Month,'" + month + "') AS 'Month' " +
-        //                                        ",ISNULL(NonFinancialData.Year,'" + year + "') AS 'Year' " +
-        //                                        ",NonFinancialData.DaysOfSupp " +
-        //                                        ",NonFinancialData.LevelOfSupport " +
-        //                                        ",NonFinancialData.OnHoldDays " +
-        //                                        ",NonFinancialData.LanguageServedAtServiceFromIndividInfo " +
-        //                                        ",NonFinancialData.MinistryDetailCode " +
-        //                                        ",NonFinancialData.Comments " +
-        //                                        ",NonFinancialData.Residences " +
-        //                                        "FROM NonFinancialData " +
-        //                                        "RIGHT JOIN IndividFundingData ON (IndividFundingData.Individual = NonFinancialData.Individual AND (Year = '" + year + "' AND Month = '" + month + "')) " +
-        //                                        "WHERE IndividFundingData.ActiveYesNo = '" + exited + "';");
-        //    if (reader.HasRows == true)
-        //    {
-        //        while (reader.Read())
-        //        {
-        //            Individual individ = new Individual();
-        //            individ.Name = reader["Individual"].ToString();
-        //            individ.DaysOfSupport = reader["DaysOfSupp"].ToString();
-        //            individ.LevelOfSupport = reader["LevelOfSupport"].ToString();
-        //            individ.OnHoldDays = reader["OnHoldDays"].ToString();
-        //            individ.MinistryDetailCode = reader["MinistryDetailCode"].ToString();
-        //            individ.Language = reader["LanguageServedAtServiceFromIndividInfo"].ToString();
-        //            individ.Comments = reader["Comments"].ToString();
-        //            list.Add(individ);
-
-        //        }
-        //    }
-        //    return list;
-        //}
-
+        /// <summary>
+        /// Saves the edited record back into Sharepoint
+        /// </summary>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public bool SaveIndividualRecord(Individual record)
         {
             string query = "";
@@ -304,7 +245,7 @@ namespace ChristianHorizons
             {
 
                 query = "<Method ID='1' Cmd='New'>" +
-                "<Field Name='Individuals'>1834</Field>" +
+                "<Field Name='Individuals'>"+record.IndividID+"</Field>" +
                 "<Field Name='Month'>"+record.Month+"</Field>" +
                 "<Field Name='Year'>"+record.Year+"</Field>" +
                 "<Field Name='DaysOfSupport'>"+record.DaysOfSupport+"</Field>" +
@@ -317,29 +258,5 @@ namespace ChristianHorizons
         }
     }
 
-
-    //        private void UpdateSharepointList()
-    //        {
-    //            Web_Reference.Lists listService = new Web_Reference.Lists();
-    //listService.Credentials= System.Net.CredentialCache.DefaultCredentials;
-
-    //string strBatch = "<Method ID='1' Cmd='Update'>" + 
-    //    "<Field Name='ID'>4</Field>" +
-    //    "<Field Name='Field_Number'>999</Field></Method>" +
-    //    "<Method ID='2' Cmd='Update'><Field Name='ID' >6</Field></Method>"; 
-
-    //XmlDocument xmlDoc = new System.Xml.XmlDocument();
-
-    //System.Xml.XmlElement elBatch = xmlDoc.CreateElement("Batch");
-
-    //elBatch.SetAttribute("OnError","Continue");
-    //elBatch.SetAttribute("ListVersion","1");
-    //elBatch.SetAttribute("ViewName",
-    //    "0d7fcacd-1d7c-45bc-bcfc-6d7f7d2eeb40");
-
-    //elBatch.InnerXml = strBatch;
-
-    //XmlNode ndReturn = listService.UpdateListItems("List_Name", elBatch);
-    //        }
 }
 
