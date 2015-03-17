@@ -8,7 +8,7 @@ using System.Web.Services;
 using System.Xml;
 
 
-namespace ChristianHorizons
+namespace NonFinancialData
 {
     public class Sharepoint
     {
@@ -147,14 +147,14 @@ namespace ChristianHorizons
         /// <param name="year"></param>
         /// <param name="exited"></param>
         /// <returns></returns>
-        public List<Individual> GetIndividuals(string month, string year, string exited)
+        public List<Individuals> GetIndividuals(string month, string year, string exited)
         {
 
             int result = 0;
 
             XmlNode programIndividuals = GetProgramIndividuals(month, year);
             XmlNode nonFinancialData = GetNonFinancialList(month, year);
-            List<Individual> nonFinancialList = new List<Individual>();
+            List<Individuals> nonFinancialList = new List<Individuals>();
 
             /* First populate the list with all the individuals in the program 
                 with null values for all the NonFinancial Data columns*/
@@ -168,7 +168,7 @@ namespace ChristianHorizons
                         {
                             if (node.ChildNodes[i].NodeType.ToString() == "Element")
                             {
-                                Individual individ = new Individual();
+                                Individuals individ = new Individuals();
                                 individ.IndividID = Convert.ToInt32(node.ChildNodes[i].Attributes["ows_RefInd2"].Value.ToString().Split(';')[0]);
                                 individ.Name = node.ChildNodes[i].Attributes["ows_RefInd2"].Value.ToString().Split('#')[1];
                                 nonFinancialList.Add(individ);
@@ -192,7 +192,7 @@ namespace ChristianHorizons
                         {
                             if (node.ChildNodes[i].NodeType.ToString() == "Element")
                             {
-                                foreach (Individual obj in nonFinancialList)
+                                foreach (Individuals obj in nonFinancialList)
                                 {
 
                                     //Check if there is a non financial record for the given month year for the individual
@@ -224,7 +224,7 @@ namespace ChristianHorizons
         /// </summary>
         /// <param name="record"></param>
         /// <returns></returns>
-        public bool SaveIndividualRecord(Individual record)
+        public bool SaveIndividualRecord(Individuals record)
         {
             string query = "";
 

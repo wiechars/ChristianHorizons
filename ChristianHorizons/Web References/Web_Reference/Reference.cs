@@ -13,7 +13,7 @@
 // 
 #pragma warning disable 1591
 
-namespace ChristianHorizons.Web_Reference {
+namespace NonFinancialData.Web_Reference {
     using System;
     using System.Web.Services;
     using System.Diagnostics;

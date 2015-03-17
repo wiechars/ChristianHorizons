@@ -58,7 +58,7 @@ namespace ChristianHorizons
                     //context.Response.Write("{\"sEcho\":1,\"iTotalRecords\":" + collection.Count + ",\"iTotalDisplayRecords\":" + collection.Count + ", ");
                     //context.Response.Write("\"aaData\":" + (jsonSerializer.Serialize(collection.AsQueryable<Individual>().ToList<Individual>())) + "}");
                     //Below is for jqGrid Above is datables
-                    context.Response.Write(jsonSerializer.Serialize(collection.AsQueryable<Individual>().ToList<Individual>()));
+                    context.Response.Write(jsonSerializer.Serialize(collection.AsQueryable<Individuals>().ToList<Individuals>()));
                 }
                 else
                 {
@@ -82,7 +82,7 @@ namespace ChristianHorizons
             }
         }
 
-        private void AddEdit(NameValueCollection forms,  List<Individual> collection, out string strResponse)
+        private void AddEdit(NameValueCollection forms,  List<Individuals> collection, out string strResponse)
         {
             string strOperation = forms.Get("oper");
             string strEmpId = string.Empty;
@@ -97,7 +97,7 @@ namespace ChristianHorizons
             string language = forms.Get("Language").ToString();
             string comments = forms.Get("Comments").ToString();
 
-            Individual obj = new Individual();
+            Individuals obj = new Individuals();
             obj.IndividID = id;
             obj.NonFinancialID = nonFinancialID;
             obj.Name = name;

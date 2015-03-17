@@ -5,7 +5,7 @@ using System.Web;
 
 namespace ChristianHorizons
 {
-    public class Individual
+    public class Remove
     {
         private int individID;
         private int nonFinancialID;
